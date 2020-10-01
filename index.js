@@ -1,13 +1,15 @@
 const maxHCap = 10;
 const maxVCap = 100;
 
+var secondsEnabled = true;
+
 var chibiZtwoReady = true;
 
-const getRandom = (end) => {
+function getRandom(end) {
     return Math.floor(Math.random() * end);
 }
 
-const setCharacters = (container, characters) => {
+function setCharacters(container, characters){
     container.innerHTML = ""; // Clear all html
     for(let i = 0; i < characters.length; i++) {
         const characterElement = document.createElement('p');
@@ -16,7 +18,7 @@ const setCharacters = (container, characters) => {
     }
 }
 
-const changeCharacter = (container, index, character) => {
+function changeCharacter(container, index, character) {
     const oldChild = container.children[index];
     if(oldChild){
         const newChild = document.createElement('p');
@@ -25,7 +27,7 @@ const changeCharacter = (container, index, character) => {
     }
 }
 
-const getChanges = (newString, oldString) => {
+function getChanges(newString, oldString) {
     if(newString.length !== oldString.length){
         throw Error("Not allowed: Inconsistent length between string.");
     }
@@ -38,18 +40,26 @@ const getChanges = (newString, oldString) => {
     return changes;
 }
 
-const getTimeString = () => {
+function getTimeString() {
     const now = new Date();
     let hours = now.getHours();
     let minutes = now.getMinutes();
     let seconds = now.getSeconds();
     const am = hours > 12;
     if(am) hours -= 12;
-    let timeString = [hours, minutes, seconds]
+    let timeString = [hours, minutes, ...(secondsEnabled ? [seconds] : [])]
         .map((v) => `0${v}`.substr(-2))
         .join(':');
     timeString += am ? "AM" : "PM";
     return timeString;
+}
+
+window.wallpaperPropertyListener = {
+    applyUserProperties: function(properties) {
+        if(properties.seconds){
+            secondsEnabled = properties.seconds.value;
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -58,7 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setCharacters(timeContainer, currentTime);
     setInterval(() => {
         const newCurrentTime = getTimeString();
-        const stringChanges = getChanges(newCurrentTime, currentTime);
+        let stringChanges;
+        try{
+            stringChanges = getChanges(newCurrentTime, currentTime);
+        }catch(e) {
+            currentTime = newCurrentTime;
+            return setCharacters(timeContainer, newCurrentTime);
+        }
         currentTime = newCurrentTime;
         for(let i = 0; i < stringChanges.length; i++){
             changeCharacter(timeContainer, ...stringChanges[i]);
