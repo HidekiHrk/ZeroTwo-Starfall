@@ -45,12 +45,12 @@ function getTimeString() {
     let hours = now.getHours();
     let minutes = now.getMinutes();
     let seconds = now.getSeconds();
-    const am = hours > 12;
-    if(am) hours -= 12;
+    const pm = hours > 12;
+    if(pm) hours -= 12;
     let timeString = [hours, minutes, ...(secondsEnabled ? [seconds] : [])]
         .map((v) => `0${v}`.substr(-2))
         .join(':');
-    timeString += am ? "AM" : "PM";
+    timeString += pm ? "PM" : "AM";
     return timeString;
 }
 
